@@ -13,7 +13,7 @@ module Configs
         "default.json",
         "custom-environment-variables.json"
     ]
-    
+
     function initconfig(;deployment_key = "DEPLOYMENT", configs_directory = "configs")::NamedTuple
         global configs = Dict{String, Any}()
         configs_order = copy(configs_defaultorder)
@@ -31,7 +31,7 @@ module Configs
                 if file === "custom-environment-variables.json"
                     parsecustomenv!(newtree)
                 end
-                override!(configs, newtree)               
+                override!(configs, newtree)
             end
         end
         (; configs_directory = configs_directory, deployment_key = deployment_key, configs_order = configs_order)
@@ -50,39 +50,19 @@ module Configs
         end
     end
 
-
     function setconfig!(path::String, value::String)
         try
-            value = JSON.parse(value) 
+            value = JSON.parse(value)
         catch err
         end
         value = pathtodict(path, value)
         setconfig!(value)
     end
-    function setconfig!(path::String, value::Number)
+    function setconfig!(path::String, value)
         value = pathtodict(path, value)
         setconfig!(value)
     end
-    function setconfig!(path::String, value::Bool)
-        value = pathtodict(path, value)
-        setconfig!(value)
-    end
-    function setconfig!(path::String, value::Tuple)
-        value = json(value) |> JSON.parse
-        value = pathtodict(path, value)
-        setconfig!(value)
-    end
-    function setconfig!(path::String, value::Array)
-        value = json(value) |> JSON.parse
-        value = pathtodict(path, value)
-        setconfig!(value)
-    end
-    function setconfig!(path::String, value::NamedTuple)
-        value = json(value) |> JSON.parse
-        value = pathtodict(path, value)
-        setconfig!(value)
-    end
-    function setconfig!(path::String, value::Dict)       
+    function setconfig!(path::String, value::Union{Tuple, AbstractArray, NamedTuple, Dict})
         value = json(value) |> JSON.parse
         value = pathtodict(path, value)
         setconfig!(value)
@@ -99,13 +79,13 @@ module Configs
         subpaths = split(path, ".")
         ref = configs
         for i in eachindex(subpaths)
-            subpath = Symbol(subpaths[i])            
+            subpath = Symbol(subpaths[i])
             if haskey(ref, subpath)
                 length(subpaths) === i && return true
                 ref = ref[subpath]
             else
                 return false
-            end    
+            end
         end
     end
 end
